@@ -8,6 +8,11 @@ type SyncProgressRequest struct {
 }
 
 type ProgressResponse struct {
+	Data ProgressResponseData `json:"data"`
+}
+
+type ProgressResponseData struct {
+	Type       string  `json:"type"`
 	Document   string  `json:"document"`
 	Percentage float64 `json:"percentage"`
 	Progress   string  `json:"progress"`

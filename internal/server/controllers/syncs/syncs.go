@@ -81,9 +81,12 @@ func GetProgress(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, apimodels.ProgressResponse{
-		Document:   progress.Document,
-		Percentage: progress.Percentage,
-		Progress:   progress.Progress,
-		Device:     progress.Device,
+		Data: apimodels.ProgressResponseData{
+			Type:       "sync",
+			Document:   progress.Document,
+			Percentage: progress.Percentage,
+			Progress:   progress.Progress,
+			Device:     progress.Device,
+		},
 	})
 }
