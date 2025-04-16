@@ -82,7 +82,7 @@ func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
 }
 
 func (s *Gorm) UpdateProgress(progress models.Progress) error {
-	progress, err := s.GetProgress(progress.User, progress.Document)
+	newProgress, err := s.GetProgress(progress.User, progress.Document)
 	if err != nil {
 		if errors.Is(err, storeErrs.ErrProgressNotFound) {
 			if err := s.db.Create(&progress).Error; err != nil {
@@ -93,7 +93,7 @@ func (s *Gorm) UpdateProgress(progress models.Progress) error {
 		}
 	}
 
-	if err := s.db.Model(&progress).Updates(models.Progress{
+	if err := s.db.Model(&newProgress).Updates(models.Progress{
 		Percentage: progress.Percentage,
 		Progress:   progress.Progress,
 		Device:     progress.Device,
