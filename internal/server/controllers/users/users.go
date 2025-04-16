@@ -9,6 +9,7 @@ import (
 	"github.com/USA-RedDragon/kosync/internal/server/apimodels"
 	"github.com/USA-RedDragon/kosync/internal/store"
 	storeErrs "github.com/USA-RedDragon/kosync/internal/store/errors"
+	"github.com/USA-RedDragon/kosync/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -47,7 +48,14 @@ func Create(c *gin.Context) {
 		}
 
 		// User does not exist, proceed to create
-		err = db.CreateUser(user.Username, user.Password)
+		hashedPassword, err := utils.HashPassword(user.Password, config.Auth.Salt)
+		if err != nil {
+			slog.Error("failed to hash password", "error", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+			return
+		}
+
+		err = db.CreateUser(user.Username, hashedPassword)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 			return
