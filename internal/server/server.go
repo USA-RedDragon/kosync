@@ -41,6 +41,16 @@ func NewServer(config *config.Config, store *store.Store) *Server {
 	r.Use(func(ctx *gin.Context) {
 		ctx.Set("store", store)
 	})
+	r.Use(func(c *gin.Context) {
+		for k, v := range c.Request.Header {
+			slog.Debug("Header", "key", k, "value", v)
+		}
+		slog.Debug("Body", "body", c.Request.Body)
+		for k, v := range c.Request.URL.Query() {
+			slog.Debug("Query", "key", k, "value", v)
+		}
+		c.Next()
+	})
 	applyRoutes(r)
 
 	var metricsServer *http.Server
