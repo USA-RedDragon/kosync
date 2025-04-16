@@ -82,5 +82,9 @@ func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
 }
 
 func (s *Gorm) UpdateProgress(progress models.Progress) error {
-	return fmt.Errorf("not implemented")
+	if err := s.db.Save(&progress).Error; err != nil {
+		return fmt.Errorf("failed to update progress: %w", err)
+	}
+
+	return nil
 }
