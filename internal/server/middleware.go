@@ -7,6 +7,7 @@ import (
 
 	"github.com/USA-RedDragon/kosync/internal/config"
 	"github.com/USA-RedDragon/kosync/internal/store"
+	storeErrs "github.com/USA-RedDragon/kosync/internal/store/errors"
 	"github.com/USA-RedDragon/kosync/internal/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -16,11 +17,10 @@ func applyMiddleware(r *gin.Engine, config *config.Config) {
 	r.Use(gin.Logger())
 	r.TrustedPlatform = "X-Real-IP"
 
-	// TODO: Set trusted proxies
-	// err := r.SetTrustedProxies(config.TrustedProxies)
-	// if err != nil {
-	// 	slog.Error("Failed to set trusted proxies", "error", err.Error())
-	// }
+	err := r.SetTrustedProxies(config.HTTP.TrustedProxies)
+	if err != nil {
+		slog.Error("Failed to set trusted proxies", "error", err.Error())
+	}
 }
 
 func requireLogin(config *config.Config) gin.HandlerFunc {
@@ -43,7 +43,7 @@ func requireLogin(config *config.Config) gin.HandlerFunc {
 		// Check if the user exists and the password is correct
 		dbUser, err := db.GetUserByUsername(user)
 		if err != nil {
-			if errors.Is(err, store.ErrUserNotFound) {
+			if errors.Is(err, storeErrs.ErrUserNotFound) {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, negativeResp)
 				return
 			}

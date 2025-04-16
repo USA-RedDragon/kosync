@@ -29,8 +29,9 @@ type Auth struct {
 }
 
 type HTTP struct {
-	Address string `name:"address" description:"Address to listen on"`
-	Port    int    `name:"port" description:"Port to listen on" default:"8080"`
+	Address        string   `name:"address" description:"Address to listen on"`
+	Port           int      `name:"port" description:"Port to listen on" default:"8080"`
+	TrustedProxies []string `name:"trusted-proxies" description:"Trusted proxies for the HTTP server"`
 }
 
 type Metrics struct {
@@ -48,14 +49,13 @@ type PProf struct {
 type StorageType string
 
 const (
-	StorageTypeRedis    StorageType = "redis"
 	StorageTypeMySQL    StorageType = "mysql"
 	StorageTypePostgres StorageType = "postgres"
 	StorageTypeSQLite   StorageType = "sqlite"
 )
 
 type Storage struct {
-	Type StorageType `name:"type" description:"Storage type. One of redis, mysql, postgres, sqlite" default:"sqlite"`
+	Type StorageType `name:"type" description:"Storage type. One of mysql, postgres, sqlite" default:"sqlite"`
 	DSN  string      `name:"dsn" description:"Data source name for the storage"`
 }
 
@@ -73,8 +73,7 @@ func (c Config) Validate() error {
 		return fmt.Errorf("%w: %s", ErrBadLogLevel, c.LogLevel)
 	}
 
-	if c.Storage.Type != StorageTypeRedis &&
-		c.Storage.Type != StorageTypeMySQL &&
+	if c.Storage.Type != StorageTypeMySQL &&
 		c.Storage.Type != StorageTypePostgres &&
 		c.Storage.Type != StorageTypeSQLite {
 		return fmt.Errorf("%w: %s", ErrBadStorageType, c.Storage.Type)

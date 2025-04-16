@@ -1,11 +1,13 @@
 package syncs
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/USA-RedDragon/kosync/internal/server/apimodels"
 	"github.com/USA-RedDragon/kosync/internal/store"
+	storeErrs "github.com/USA-RedDragon/kosync/internal/store/errors"
 	"github.com/USA-RedDragon/kosync/internal/store/models"
 	"github.com/gin-gonic/gin"
 )
@@ -68,7 +70,7 @@ func GetProgress(c *gin.Context) {
 
 	progress, err := db.GetProgress(user.Username, document)
 	if err != nil {
-		if err == store.ErrProgressNotFound {
+		if errors.Is(err, storeErrs.ErrProgressNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "progress not found"})
 			return
 		}

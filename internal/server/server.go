@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -43,22 +42,7 @@ func NewServer(config *config.Config, store store.Store) *Server {
 		ctx.Set("store", store)
 		ctx.Set("config", config)
 	})
-	r.Use(func(c *gin.Context) {
-		for k, v := range c.Request.Header {
-			slog.Debug("Header", "key", k, "value", v)
-		}
-		body, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			slog.Error("Failed to read request body", "error", err.Error())
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		slog.Debug("Body", "body", string(body))
-		for k, v := range c.Request.URL.Query() {
-			slog.Debug("Query", "key", k, "value", v)
-		}
-		c.Next()
-	})
+
 	applyRoutes(r, config)
 
 	var metricsServer *http.Server

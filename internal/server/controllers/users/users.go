@@ -8,6 +8,7 @@ import (
 	"github.com/USA-RedDragon/kosync/internal/config"
 	"github.com/USA-RedDragon/kosync/internal/server/apimodels"
 	"github.com/USA-RedDragon/kosync/internal/store"
+	storeErrs "github.com/USA-RedDragon/kosync/internal/store/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,21 +40,21 @@ func Create(c *gin.Context) {
 	// Check if the user already exists
 	_, err := db.GetUserByUsername(user.Username)
 	if err != nil {
-		if !errors.Is(err, store.ErrUserNotFound) {
+		if !errors.Is(err, storeErrs.ErrUserNotFound) {
 			slog.Error("failed to get user from store", "error", err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
 			return
-		} else {
-			// User does not exist, proceed to create
-			err = db.CreateUser(user.Username, user.Password)
-			if err != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
-				return
-			}
+		}
 
-			c.JSON(http.StatusCreated, gin.H{"message": "user created"})
+		// User does not exist, proceed to create
+		err = db.CreateUser(user.Username, user.Password)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 			return
 		}
+
+		c.JSON(http.StatusCreated, gin.H{"message": "user created"})
+		return
 	}
 
 	// User already exists
