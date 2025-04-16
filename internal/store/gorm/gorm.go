@@ -93,7 +93,7 @@ func (s *Gorm) UpdateProgress(progress models.Progress) error {
 		}
 	}
 
-	if err := s.db.Model(&newProgress).Updates(models.Progress{
+	if err := s.db.Model(&newProgress).Where("user = ? AND document = ?", progress.User, strings.ToLower(progress.Document)).Updates(models.Progress{
 		Percentage: progress.Percentage,
 		Progress:   progress.Progress,
 		Device:     progress.Device,
