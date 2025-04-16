@@ -71,7 +71,7 @@ func (s *Gorm) GetUserByUsername(username string) (models.User, error) {
 
 func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
 	var progress models.Progress
-	if err := s.db.Where("user = ? AND document = ?", strings.ToLower(username), strings.ToLower(document)).First(&progress).Error; err != nil {
+	if err := s.db.Where("user = ? AND document = ?", username, strings.ToLower(document)).First(&progress).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return models.Progress{}, storeErrs.ErrProgressNotFound
 		}
@@ -82,7 +82,7 @@ func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
 }
 
 func (s *Gorm) UpdateProgress(progress models.Progress) error {
-	if err := s.db.Save(&progress).Error; err != nil {
+	if err := s.db.Save(&progress).Where("user = ? AND document = ?", progress.User, strings.ToLower(progress.Document)).Error; err != nil {
 		return fmt.Errorf("failed to update progress: %w", err)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/USA-RedDragon/kosync/internal/server/apimodels"
 	"github.com/USA-RedDragon/kosync/internal/store"
@@ -33,8 +34,8 @@ func UpdateProgress(c *gin.Context) {
 	}
 
 	err := db.UpdateProgress(models.Progress{
-		User:       user.Username,
-		Document:   progress.Document,
+		User:       strings.ToLower(user.Username),
+		Document:   strings.ToLower(progress.Document),
 		Percentage: progress.Percentage,
 		Progress:   progress.Progress,
 		Device:     progress.Device,
