@@ -82,7 +82,7 @@ func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
 }
 
 func (s *Gorm) UpdateProgress(progress models.Progress) error {
-	if err := s.db.Save(&progress).Where("user = ? AND document = ?", progress.User, strings.ToLower(progress.Document)).Error; err != nil {
+	if err := s.db.Where("user = ? AND document = ?", progress.User, strings.ToLower(progress.Document)).Save(&progress).Error; err != nil {
 		return fmt.Errorf("failed to update progress: %w", err)
 	}
 
