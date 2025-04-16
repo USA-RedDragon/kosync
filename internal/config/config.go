@@ -17,9 +17,15 @@ const (
 type Config struct {
 	LogLevel LogLevel `name:"log-level" description:"Logging level for the application. One of debug, info, warn, or error" default:"info"`
 	Storage  Storage  `name:"storage" description:"Storage configuration"`
+	Auth     Auth     `name:"auth" description:"Authentication configuration"`
 	HTTP     HTTP     `name:"http" description:"HTTP server configuration"`
 	Metrics  Metrics  `name:"metrics" description:"Metrics server configuration"`
 	PProf    PProf    `name:"pprof" description:"PProf server configuration"`
+}
+
+type Auth struct {
+	Salt              string `name:"salt" description:"Salt for hashing passwords"`
+	AllowRegistration bool   `name:"allow-registration" description:"Allow user registration" default:"true"`
 }
 
 type HTTP struct {
@@ -56,6 +62,7 @@ type Storage struct {
 var (
 	ErrBadLogLevel    = errors.New("invalid log level provided")
 	ErrBadStorageType = errors.New("invalid storage type provided")
+	ErrNoSalt         = errors.New("salt cannot be empty")
 )
 
 func (c Config) Validate() error {
@@ -71,6 +78,10 @@ func (c Config) Validate() error {
 		c.Storage.Type != StorageTypePostgres &&
 		c.Storage.Type != StorageTypeSQLite {
 		return fmt.Errorf("%w: %s", ErrBadStorageType, c.Storage.Type)
+	}
+
+	if c.Auth.Salt == "" {
+		return ErrNoSalt
 	}
 
 	// TODO: validate HTTP addresses and ports

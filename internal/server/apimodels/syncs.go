@@ -1,0 +1,15 @@
+package apimodels
+
+type SyncProgressRequest struct {
+	Percentage float64 `json:"percentage" binding:"required"`
+	Document   string  `json:"document" binding:"required"`
+	Device     string  `json:"device" binding:"required"`
+	Progress   string  `json:"progress" binding:"required"`
+}
+
+type ProgressResponse struct {
+	Document   string  `json:"document"`
+	Percentage float64 `json:"percentage"`
+	Progress   string  `json:"progress"`
+	Device     string  `json:"device"`
+}

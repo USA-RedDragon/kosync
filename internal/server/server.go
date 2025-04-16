@@ -28,7 +28,7 @@ type Server struct {
 
 const defTimeout = 5 * time.Second
 
-func NewServer(config *config.Config, store *store.Store) *Server {
+func NewServer(config *config.Config, store store.Store) *Server {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
@@ -41,6 +41,7 @@ func NewServer(config *config.Config, store *store.Store) *Server {
 	applyMiddleware(r, config)
 	r.Use(func(ctx *gin.Context) {
 		ctx.Set("store", store)
+		ctx.Set("config", config)
 	})
 	r.Use(func(c *gin.Context) {
 		for k, v := range c.Request.Header {
@@ -58,7 +59,7 @@ func NewServer(config *config.Config, store *store.Store) *Server {
 		}
 		c.Next()
 	})
-	applyRoutes(r)
+	applyRoutes(r, config)
 
 	var metricsServer *http.Server
 	var pprofServer *http.Server

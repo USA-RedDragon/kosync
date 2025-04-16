@@ -1,6 +1,8 @@
 package store
 
 import (
+	"errors"
+
 	"github.com/USA-RedDragon/kosync/internal/config"
 	"github.com/USA-RedDragon/kosync/internal/store/gorm"
 	"github.com/USA-RedDragon/kosync/internal/store/models"
@@ -8,11 +10,16 @@ import (
 )
 
 type Store interface {
-	CreateUser(user *models.User) error
-	GetUser(id string) (*models.User, error)
-	GetProgress(book string) (*models.Progress, error)
-	UpdateProgress(book string, progress *models.Progress) error
+	CreateUser(username, password string) error
+	GetUserByUsername(username string) (models.User, error)
+	GetProgress(username, document string) (models.Progress, error)
+	UpdateProgress(progress models.Progress) error
 }
+
+var (
+	ErrUserNotFound     = errors.New("user not found")
+	ErrProgressNotFound = errors.New("progress not found")
+)
 
 func NewStore(cfg *config.Config) (Store, error) {
 	switch cfg.Storage.Type {

@@ -40,18 +40,18 @@ func NewGormStore(cfg *config.Config) (*Gorm, error) {
 	}, nil
 }
 
-func (s *Gorm) CreateUser(user *models.User) error {
-	return nil
+func (s *Gorm) CreateUser(username, password string) error {
+	return fmt.Errorf("not implemented")
 }
 
-func (s *Gorm) GetUser(id string) (*models.User, error) {
-	return nil, nil
+func (s *Gorm) GetUserByUsername(username string) (models.User, error) {
+	return models.User{}, fmt.Errorf("not implemented")
 }
 
-func (s *Gorm) GetProgress(book string) (*models.Progress, error) {
-	return nil, nil
+func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
+	return models.Progress{}, fmt.Errorf("not implemented")
 }
 
-func (s *Gorm) UpdateProgress(book string, progress *models.Progress) error {
-	return nil
+func (s *Gorm) UpdateProgress(progress models.Progress) error {
+	return fmt.Errorf("not implemented")
 }

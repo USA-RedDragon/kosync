@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"fmt"
+
 	"github.com/USA-RedDragon/kosync/internal/config"
 	"github.com/USA-RedDragon/kosync/internal/store/models"
 )
@@ -9,21 +11,21 @@ type Redis struct {
 }
 
 func NewRedisStore(config *config.Config) (*Redis, error) {
-	return &Redis{}, nil
+	return &Redis{}, fmt.Errorf("not implemented")
 }
 
-func (s *Redis) CreateUser(user *models.User) error {
-	return nil
+func (s *Redis) CreateUser(username, password string) error {
+	return fmt.Errorf("not implemented")
 }
 
-func (s *Redis) GetUser(id string) (*models.User, error) {
-	return nil, nil
+func (s *Redis) GetUserByUsername(username string) (models.User, error) {
+	return models.User{}, fmt.Errorf("not implemented")
 }
 
-func (s *Redis) GetProgress(book string) (*models.Progress, error) {
-	return nil, nil
+func (s *Redis) GetProgress(username, document string) (models.Progress, error) {
+	return models.Progress{}, fmt.Errorf("not implemented")
 }
 
-func (s *Redis) UpdateProgress(book string, progress *models.Progress) error {
-	return nil
+func (s *Redis) UpdateProgress(progress models.Progress) error {
+	return fmt.Errorf("not implemented")
 }

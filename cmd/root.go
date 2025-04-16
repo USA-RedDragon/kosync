@@ -62,7 +62,7 @@ func runRoot(cmd *cobra.Command, _ []string) error {
 
 	slog.Info("Connected to datastore", "type", cfg.Storage.Type)
 
-	server := server.NewServer(cfg, &store)
+	server := server.NewServer(cfg, store)
 
 	if err := server.Start(); err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
