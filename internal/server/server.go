@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -45,7 +46,13 @@ func NewServer(config *config.Config, store *store.Store) *Server {
 		for k, v := range c.Request.Header {
 			slog.Debug("Header", "key", k, "value", v)
 		}
-		slog.Debug("Body", "body", c.Request.Body)
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			slog.Error("Failed to read request body", "error", err.Error())
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		slog.Debug("Body", "body", string(body))
 		for k, v := range c.Request.URL.Query() {
 			slog.Debug("Query", "key", k, "value", v)
 		}
