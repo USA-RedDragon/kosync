@@ -82,7 +82,22 @@ func (s *Gorm) GetProgress(username, document string) (models.Progress, error) {
 }
 
 func (s *Gorm) UpdateProgress(progress models.Progress) error {
-	if err := s.db.Where("user = ? AND document = ?", progress.User, strings.ToLower(progress.Document)).FirstOrCreate(&progress).Error; err != nil {
+	progress, err := s.GetProgress(progress.User, progress.Document)
+	if err != nil {
+		if errors.Is(err, storeErrs.ErrProgressNotFound) {
+			if err := s.db.Create(&progress).Error; err != nil {
+				return fmt.Errorf("failed to create progress: %w", err)
+			}
+		} else {
+			return fmt.Errorf("failed to get progress: %w", err)
+		}
+	}
+
+	if err := s.db.Model(&progress).Updates(models.Progress{
+		Percentage: progress.Percentage,
+		Progress:   progress.Progress,
+		Device:     progress.Device,
+	}).Error; err != nil {
 		return fmt.Errorf("failed to update progress: %w", err)
 	}
 
