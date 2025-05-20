@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/USA-RedDragon/configulator v0.0.0-20250409213831-8d29f1f162be
 	github.com/gin-contrib/pprof v1.5.3
-	github.com/gin-gonic/gin v1.10.0
+	github.com/gin-gonic/gin v1.10.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/lmittmann/tint v1.0.7
 	github.com/prometheus/client_golang v1.22.0
