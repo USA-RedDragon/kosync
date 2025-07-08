@@ -1,6 +1,6 @@
 module github.com/USA-RedDragon/kosync
 
-go 1.24.2
+go 1.24.5
 
 require (
 	github.com/USA-RedDragon/configulator v0.0.0-20250409213831-8d29f1f162be
