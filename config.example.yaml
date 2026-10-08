@@ -1,0 +1,39 @@
+# Sample configuration for Config.
+# Logging level for the application. One of debug, info, warn, or error
+log-level: "info"
+# Storage configuration
+storage:
+  # Storage type. One of mysql, postgres, sqlite
+  type: "sqlite"
+  # Data source name for the storage
+  # dsn: ""
+# Authentication configuration
+auth:
+  # Salt for hashing passwords
+  # salt: "(secret)"
+  # Allow user registration
+  allow-registration: true
+# HTTP server configuration
+http:
+  # Address to listen on
+  # address: ""
+  # Port to listen on
+  port: 8080
+  # Trusted proxies for the HTTP server
+  # trusted-proxies: []
+# Metrics server configuration
+metrics:
+  # Enable metrics server
+  enabled: false
+  # Address to listen on
+  # address: ""
+  # Port to listen on
+  port: 9000
+# PProf server configuration
+pprof:
+  # Enable pprof server
+  enabled: false
+  # Address to listen on
+  # address: ""
+  # Port to listen on
+  port: 9999
