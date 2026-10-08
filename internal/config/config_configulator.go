@@ -11,6 +11,7 @@ import (
 	configulator "github.com/USA-RedDragon/configulator/v2"
 	cpflag "github.com/USA-RedDragon/configulator/v2/flags/pflag"
 	"github.com/spf13/pflag"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -56,7 +57,7 @@ func ConfigSchema() *configulator.Schema[Config] {
 		Required:      []string{"auth.salt"},
 	}
 }
-func configApplyDefaults(cfg *Config, set configulator.SetOrigin) error {
+func configApplyDefaults(cfg *Config, sep string, set configulator.SetOrigin) error {
 	cfg.LogLevel = LogLevel("info")
 	set("log-level", configulator.LayerDefault, "default tag")
 	cfg.Storage.Type = StorageType("sqlite")
@@ -71,7 +72,7 @@ func configApplyDefaults(cfg *Config, set configulator.SetOrigin) error {
 	set("pprof.port", configulator.LayerDefault, "default tag")
 	return nil
 }
-func configDecodeFile(data []byte, u configulator.Unmarshal, cfg *Config, set configulator.SetOrigin, file string) error {
+func configDecodeFile(data []byte, u configulator.Unmarshal, cfg *Config, sep string, set configulator.SetOrigin, file string) error {
 	var sh configShadow
 	if err := u(data, &sh); err != nil {
 		return &configulator.DecodeError{
@@ -79,9 +80,9 @@ func configDecodeFile(data []byte, u configulator.Unmarshal, cfg *Config, set co
 			Path: file,
 		}
 	}
-	return sh.applyTo(cfg, set, file)
+	return sh.applyTo(cfg, sep, set, file)
 }
-func (s *configShadow) applyTo(cfg *Config, set configulator.SetOrigin, file string) error {
+func (s *configShadow) applyTo(cfg *Config, sep string, set configulator.SetOrigin, file string) error {
 	if s.LogLevel != nil {
 		cfg.LogLevel = LogLevel(*s.LogLevel)
 		set("log-level", configulator.LayerFile, file)
@@ -213,7 +214,8 @@ func configApplyEnv(cfg *Config, ec configulator.EnvContext, set configulator.Se
 	}
 	if n := configulator.EnvName(ec.Opts.Prefix, ec.Opts.Separator, "http", "trusted-proxies"); true {
 		if v, ok := ec.Getenv(n); ok {
-			cfg.HTTP.TrustedProxies = configulator.SplitList(v, ec.ArraySeparator)
+			lst := configulator.SplitList(v, ec.ArraySeparator)
+			cfg.HTTP.TrustedProxies = lst
 			set("http.trusted-proxies", configulator.LayerEnv, n)
 		}
 	}
@@ -300,28 +302,32 @@ func ConfigPFlagHooks() cpflag.Hooks[Config] {
 	}
 }
 func configRegisterPFlags(fs *pflag.FlagSet, o *cpflag.Options) error {
-	for _, name := range []string{strings.Join([]string{"log-level"}, o.Separator), strings.Join([]string{"storage", "type"}, o.Separator), strings.Join([]string{"storage", "dsn"}, o.Separator), strings.Join([]string{"auth", "salt"}, o.Separator), strings.Join([]string{"auth", "allow-registration"}, o.Separator), strings.Join([]string{"http", "address"}, o.Separator), strings.Join([]string{"http", "port"}, o.Separator), strings.Join([]string{"http", "trusted-proxies"}, o.Separator), strings.Join([]string{"metrics", "enabled"}, o.Separator), strings.Join([]string{"metrics", "address"}, o.Separator), strings.Join([]string{"metrics", "port"}, o.Separator), strings.Join([]string{"pprof", "enabled"}, o.Separator), strings.Join([]string{"pprof", "address"}, o.Separator), strings.Join([]string{"pprof", "port"}, o.Separator)} {
-		if fs.Lookup(name) != nil {
-			return fmt.Errorf("flag --%s already registered on this FlagSet", name)
+	names := []string{strings.Join([]string{"log-level"}, o.Separator), strings.Join([]string{"storage", "type"}, o.Separator), strings.Join([]string{"storage", "dsn"}, o.Separator), strings.Join([]string{"auth", "salt"}, o.Separator), strings.Join([]string{"auth", "allow-registration"}, o.Separator), strings.Join([]string{"http", "address"}, o.Separator), strings.Join([]string{"http", "port"}, o.Separator), strings.Join([]string{"http", "trusted-proxies"}, o.Separator), strings.Join([]string{"metrics", "enabled"}, o.Separator), strings.Join([]string{"metrics", "address"}, o.Separator), strings.Join([]string{"metrics", "port"}, o.Separator), strings.Join([]string{"pprof", "enabled"}, o.Separator), strings.Join([]string{"pprof", "address"}, o.Separator), strings.Join([]string{"pprof", "port"}, o.Separator)}
+	for i, name := range names {
+		if fs.Lookup(name) != nil || slices.Contains(names[:i], name) {
+			return &configulator.FlagConflictError{
+				Existing: name,
+				Flag:     name,
+			}
 		}
 	}
-	fs.String(strings.Join([]string{"log-level"}, o.Separator), "info", "Logging level for the application. One of debug, info, warn, or error")
-	fs.String(strings.Join([]string{"storage", "type"}, o.Separator), "sqlite", "Storage type. One of mysql, postgres, sqlite")
-	fs.String(strings.Join([]string{"storage", "dsn"}, o.Separator), "", "Data source name for the storage")
-	fs.String(strings.Join([]string{"auth", "salt"}, o.Separator), "", "Salt for hashing passwords")
-	fs.Bool(strings.Join([]string{"auth", "allow-registration"}, o.Separator), true, "Allow user registration")
-	fs.String(strings.Join([]string{"http", "address"}, o.Separator), "", "Address to listen on")
-	fs.Int(strings.Join([]string{"http", "port"}, o.Separator), 8080, "Port to listen on")
-	fs.StringSlice(strings.Join([]string{"http", "trusted-proxies"}, o.Separator), nil, "Trusted proxies for the HTTP server")
-	fs.Bool(strings.Join([]string{"metrics", "enabled"}, o.Separator), false, "Enable metrics server")
-	fs.String(strings.Join([]string{"metrics", "address"}, o.Separator), "", "Address to listen on")
-	fs.Int(strings.Join([]string{"metrics", "port"}, o.Separator), 9000, "Port to listen on")
-	fs.Bool(strings.Join([]string{"pprof", "enabled"}, o.Separator), false, "Enable pprof server")
-	fs.String(strings.Join([]string{"pprof", "address"}, o.Separator), "", "Address to listen on")
-	fs.Int(strings.Join([]string{"pprof", "port"}, o.Separator), 9999, "Port to listen on")
+	fs.String(names[0], "info", "Logging level for the application. One of debug, info, warn, or error")
+	fs.String(names[1], "sqlite", "Storage type. One of mysql, postgres, sqlite")
+	fs.String(names[2], "", "Data source name for the storage")
+	fs.String(names[3], "", "Salt for hashing passwords")
+	fs.Bool(names[4], true, "Allow user registration")
+	fs.String(names[5], "", "Address to listen on")
+	fs.Int(names[6], 8080, "Port to listen on")
+	fs.StringSlice(names[7], nil, "Trusted proxies for the HTTP server")
+	fs.Bool(names[8], false, "Enable metrics server")
+	fs.String(names[9], "", "Address to listen on")
+	fs.Int(names[10], 9000, "Port to listen on")
+	fs.Bool(names[11], false, "Enable pprof server")
+	fs.String(names[12], "", "Address to listen on")
+	fs.Int(names[13], 9999, "Port to listen on")
 	return nil
 }
-func configApplyPFlags(cfg *Config, fs *pflag.FlagSet, o *cpflag.Options, set configulator.SetOrigin) error {
+func configApplyPFlags(cfg *Config, fs *pflag.FlagSet, o *cpflag.Options, sep string, set configulator.SetOrigin) error {
 	if n := strings.Join([]string{"log-level"}, o.Separator); fs.Changed(n) {
 		v, err := fs.GetString(n)
 		if err != nil {
