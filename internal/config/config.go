@@ -1,5 +1,7 @@
 package config
 
+//go:generate go tool configulator -type Config
+
 import (
 	"errors"
 	"fmt"
@@ -24,7 +26,7 @@ type Config struct {
 }
 
 type Auth struct {
-	Salt              string `name:"salt" description:"Salt for hashing passwords"`
+	Salt              string `name:"salt" description:"Salt for hashing passwords" required:"true" secret:"true"`
 	AllowRegistration bool   `name:"allow-registration" description:"Allow user registration" default:"true"`
 }
 

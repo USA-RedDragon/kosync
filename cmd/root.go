@@ -6,7 +6,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/USA-RedDragon/configulator"
+	"github.com/USA-RedDragon/configulator/v2"
 	"github.com/USA-RedDragon/kosync/internal/config"
 	"github.com/USA-RedDragon/kosync/internal/server"
 	"github.com/USA-RedDragon/kosync/internal/store"
