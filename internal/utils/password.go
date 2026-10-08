@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -82,13 +83,21 @@ func VerifyPassword(password, compareHash string, pwsalt string) (bool, error) {
 	if err != nil {
 		return false, ErrInvalidHash
 	}
-	p.saltLength = uint32(len(salt))
+	saltLen := uint64(len(salt))
+	if saltLen > math.MaxUint32 {
+		return false, ErrInvalidHash
+	}
+	p.saltLength = uint32(saltLen)
 
 	hash, err := base64.RawStdEncoding.Strict().DecodeString(vals[5])
 	if err != nil {
 		return false, ErrInvalidHash
 	}
-	p.keyLength = uint32(len(hash))
+	hashLen := uint64(len(hash))
+	if hashLen > math.MaxUint32 {
+		return false, ErrInvalidHash
+	}
+	p.keyLength = uint32(hashLen)
 
 	// Derive the key from the other password using the same parameters.
 	otherHash := argon2.IDKey([]byte(password+pwsalt), salt, p.iterations, p.memory, p.parallelism, p.keyLength)

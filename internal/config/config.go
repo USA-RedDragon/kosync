@@ -85,8 +85,5 @@ func (c Config) Validate() error {
 		return ErrNoSalt
 	}
 
-	// TODO: validate HTTP addresses and ports
-	// TODO: validate storage DSN
-
 	return nil
 }

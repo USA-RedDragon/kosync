@@ -13,28 +13,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	errorKey         = "error"
+	errTryAgainLater = "try again later"
+)
+
 func Create(c *gin.Context) {
 	config, ok := c.MustGet("config").(*config.Config)
 	if !ok {
 		slog.Error("failed to get config from context")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 		return
 	}
 	if !config.Auth.AllowRegistration {
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "registration is disabled"})
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{errorKey: "registration is disabled"})
 		return
 	}
 
 	var user apimodels.UserCreateRequest
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 		return
 	}
 
 	db, ok := c.MustGet("store").(store.Store)
 	if !ok {
 		slog.Error("failed to get store from context")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 		return
 	}
 
@@ -43,7 +48,7 @@ func Create(c *gin.Context) {
 	if err != nil {
 		if !errors.Is(err, storeErrs.ErrUserNotFound) {
 			slog.Error("failed to get user from store", "error", err)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 			return
 		}
 
@@ -51,13 +56,13 @@ func Create(c *gin.Context) {
 		hashedPassword, err := utils.HashPassword(user.Password, config.Auth.Salt)
 		if err != nil {
 			slog.Error("failed to hash password", "error", err)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 			return
 		}
 
 		err = db.CreateUser(user.Username, hashedPassword)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: "failed to create user"})
 			return
 		}
 
@@ -66,7 +71,7 @@ func Create(c *gin.Context) {
 	}
 
 	// User already exists
-	c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": "user already exists"})
+	c.AbortWithStatusJSON(http.StatusConflict, gin.H{errorKey: "user already exists"})
 }
 
 func Auth(c *gin.Context) {

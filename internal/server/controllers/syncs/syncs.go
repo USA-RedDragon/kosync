@@ -13,23 +13,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	errorKey         = "error"
+	errTryAgainLater = "try again later"
+)
+
 func UpdateProgress(c *gin.Context) {
 	var progress apimodels.SyncProgressRequest
 	if err := c.ShouldBindJSON(&progress); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 		return
 	}
 	db, ok := c.MustGet("store").(store.Store)
 	if !ok {
 		slog.Error("failed to get store from context")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 		return
 	}
 
 	user, ok := c.MustGet("user").(models.User)
 	if !ok {
 		slog.Error("failed to get user from context")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 		return
 	}
 
@@ -42,7 +47,7 @@ func UpdateProgress(c *gin.Context) {
 	})
 	if err != nil {
 		slog.Error("failed to update progress", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to update progress"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: "failed to update progress"})
 		return
 	}
 
@@ -52,31 +57,31 @@ func UpdateProgress(c *gin.Context) {
 func GetProgress(c *gin.Context) {
 	document := c.Param("document")
 	if document == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "document is required"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{errorKey: "document is required"})
 		return
 	}
 	db, ok := c.MustGet("store").(store.Store)
 	if !ok {
 		slog.Error("failed to get store from context")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 		return
 	}
 
 	user, ok := c.MustGet("user").(models.User)
 	if !ok {
 		slog.Error("failed to get user from context")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "try again later"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: errTryAgainLater})
 		return
 	}
 
 	progress, err := db.GetProgress(user.Username, document)
 	if err != nil {
 		if errors.Is(err, storeErrs.ErrProgressNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "progress not found"})
+			c.JSON(http.StatusNotFound, gin.H{errorKey: "progress not found"})
 			return
 		}
 		slog.Error("failed to get progress", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to get progress"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{errorKey: "failed to get progress"})
 		return
 	}
 
